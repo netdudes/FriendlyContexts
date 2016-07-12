@@ -64,4 +64,15 @@ class DecimalGuesserSpec extends ObjectBehavior
 
         $this->supports($mapping)->shouldReturn(false);
     }
+
+    function it_should_use__parameter_while_faking_an_int(Base $faker)
+    {
+        $mapping = [
+            'length' => 3,
+        ];
+
+        $faker->fake('numberBetween', [0, 999])->shouldBeCalled();
+
+        $this->fake($mapping);
+    }
 }
