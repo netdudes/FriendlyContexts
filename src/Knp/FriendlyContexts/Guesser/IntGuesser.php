@@ -4,6 +4,8 @@ namespace Knp\FriendlyContexts\Guesser;
 
 class IntGuesser extends AbstractGuesser implements GuesserInterface
 {
+    const DEFAULT_MAX = 2000000000;
+
     public function supports(array $mapping)
     {
         $mapping = array_merge([ 'type' => null ], $mapping);
@@ -31,22 +33,36 @@ class IntGuesser extends AbstractGuesser implements GuesserInterface
      */
     private function determineMaxValue(array $mapping)
     {
-        $defaultMax = 2000000000;
-
-        $lengthUndefined = !isset($mapping['length']);
-        if ($lengthUndefined) {
-            return $defaultMax;
+        try {
+            $length = $this->getLengthFromMapping($mapping);
+            $maxValue = (int)str_repeat('9', $length);
+        } catch (\Exception $e) {
+            $maxValue = self::DEFAULT_MAX;
         }
-
-        $lengthInvalid = $mapping['length'] < 1
-            || $mapping['length'] >= strlen($defaultMax);
-        if ($lengthInvalid) {
-            return $defaultMax;
-        }
-
-        $maxValue = (int)str_repeat('9', $mapping['length']);
 
         return $maxValue;
+    }
+
+    /**
+     * @param array $mapping
+     *
+     * @throws \Exception
+     *
+     * @return int
+     */
+    private function getLengthFromMapping(array $mapping)
+    {
+        if (!isset($mapping['length'])) {
+            throw new \Exception('The "length" key is not defined');
+        }
+
+        $isLengthValid = $mapping['length'] > 0
+            && $mapping['length'] < strlen(self::DEFAULT_MAX);
+        if (!$isLengthValid) {
+            throw new \Exception('The "length" key value is not valid');
+        }
+
+        return $mapping['length'];
     }
 
     public function getName()

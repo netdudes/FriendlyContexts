@@ -3,6 +3,7 @@
 namespace spec\Knp\FriendlyContexts\Guesser;
 
 use Knp\FriendlyContexts\Faker\Provider\Base;
+use Knp\FriendlyContexts\Guesser\IntGuesser;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -75,7 +76,7 @@ class IntGuesserSpec extends ObjectBehavior
             'length' => 30,
         ];
 
-        $faker->fake('numberBetween', [0, 2000000000])->shouldBeCalled();
+        $faker->fake('numberBetween', [0, IntGuesser::DEFAULT_MAX])->shouldBeCalled();
 
         $this->fake($mapping);
     }
