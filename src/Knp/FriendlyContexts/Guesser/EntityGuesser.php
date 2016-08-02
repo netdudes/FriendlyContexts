@@ -3,6 +3,7 @@
 namespace Knp\FriendlyContexts\Guesser;
 
 use Knp\FriendlyContexts\Record\Collection\Bag;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class EntityGuesser extends AbstractGuesser implements GuesserInterface
 {
@@ -21,16 +22,54 @@ class EntityGuesser extends AbstractGuesser implements GuesserInterface
         return false;
     }
 
-    public function transform($str, array $mapping)
+    public function transform($str, array $mapping, $em)
     {
         $str = strlen((string) $str) ? $str : null;
 
-        if (null !== $record = $this->bag->getCollection($mapping['targetEntity'])->search($str)) {
-
+        $collection = $this->bag->getCollection($mapping['targetEntity']);
+        $record = $collection->search($str);
+        if (null !== $record) {
             return $record->getEntity();
         }
 
+        $record = $this->getRecordFromDb($collection, $str, $em);
+        if($record !== null){
+            return $record;
+        }
         return null;
+    }
+
+    private function getRecordFromDb($collection, $str, $em)
+    {
+        $entityClass = $collection->getReferencial();
+
+        // TODO: Maybe we could override these bundle?
+        $criteria = [];
+        $valuesExploded = explode(' ', $collection->getHeaders()[0]);
+        $count = 0;
+        foreach($valuesExploded as $string){
+            if($count === 0){
+                $key = strtolower($string);
+                $count++;
+            } else {
+                $key = $key . ucwords($string);
+            }
+        }
+
+        $criteria[$key] = $str ;
+
+        $entity =  $em->getRepository($entityClass)->findOneBy($criteria);
+
+        $reflection = new \ReflectionClass($entity);
+        do {
+            $this->
+                bag
+                ->getCollection($reflection->getName())
+                ->attach($entity, [$key => $string]);
+            $reflection = $reflection->getParentClass();
+        } while (false !== $reflection);
+
+        return $entity;
     }
 
     public function fake(array $mapping)

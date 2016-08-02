@@ -25,7 +25,7 @@ class EntityHydrator
     {
         foreach ($values as $property => $value) {
             if (false !== $mapping = $this->resolver->getMetadataFromProperty($em, $entity, $property)) {
-                $this->formatFromMapping($mapping, $property, $value);
+                $this->formatFromMapping($mapping, $property, $value, $em);
             }
 
             try {
@@ -100,17 +100,17 @@ class EntityHydrator
         return $guesser->fake($mapping);
     }
 
-    protected function format($mapping, $value)
+    protected function format($mapping, $value, $em)
     {
         if (false === $guesser = $this->guesserManager->find($mapping)) {
 
             return $value;
         }
 
-        return $guesser->transform($value, $mapping);
+        return $guesser->transform($value, $mapping, $em);
     }
 
-    protected function formatFromMapping($mapping, &$property, &$value)
+    protected function formatFromMapping($mapping, &$property, &$value, $em)
     {
         $property = $mapping['fieldName'];
         $collectionRelation = in_array($mapping['type'], [ClassMetadata::ONE_TO_MANY, ClassMetadata::MANY_TO_MANY]);
@@ -118,15 +118,15 @@ class EntityHydrator
 
         if ($collectionRelation || $arrayRelation) {
             $result = array_map(
-                function ($e) use ($mapping) {
-                    return $this->format($mapping, $e);
+                function ($e) use ($mapping, $em) {
+                    return $this->format($mapping, $e, $em);
                 },
                     $this->formater->listToArray($value)
                 );
 
             $value = $collectionRelation ? new ArrayCollection($result) : $result;
         } else {
-            $value = $this->format($mapping, $value);
+            $value = $this->format($mapping, $value, $em);
         }
     }
 }

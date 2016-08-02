@@ -112,4 +112,9 @@ class Collection
 
         return $result;
     }
+
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
 }
