@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\Types\Type as DBALType;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Knp\FriendlyContexts\Guesser\EntityGuesser;
 use Knp\FriendlyContexts\Guesser\GuesserManager;
 use Knp\FriendlyContexts\Utils\TextFormater;
 use Knp\FriendlyContexts\Utils\UniqueCache;
@@ -25,7 +26,7 @@ class EntityHydrator
     {
         foreach ($values as $property => $value) {
             if (false !== $mapping = $this->resolver->getMetadataFromProperty($em, $entity, $property)) {
-                $this->formatFromMapping($mapping, $property, $value);
+                $this->formatFromMapping($mapping, $property, $value, $em);
             }
 
             try {
@@ -100,33 +101,38 @@ class EntityHydrator
         return $guesser->fake($mapping);
     }
 
-    protected function format($mapping, $value)
+    protected function format($mapping, $value, $entityManager)
     {
         if (false === $guesser = $this->guesserManager->find($mapping)) {
 
             return $value;
         }
 
+        if($guesser instanceof EntityGuesser){
+            return $guesser->guess($value, $mapping, $entityManager);
+        }
+
         return $guesser->transform($value, $mapping);
     }
 
-    protected function formatFromMapping($mapping, &$property, &$value)
+    protected function formatFromMapping($mapping, &$property, &$value, $entityManager)
     {
         $property = $mapping['fieldName'];
         $collectionRelation = in_array($mapping['type'], [ClassMetadata::ONE_TO_MANY, ClassMetadata::MANY_TO_MANY]);
         $arrayRelation = in_array($mapping['type'], [DBALType::TARRAY, DBALType::SIMPLE_ARRAY, DBALType::JSON_ARRAY]);
 
         if ($collectionRelation || $arrayRelation) {
+            $lol = '';
             $result = array_map(
-                function ($e) use ($mapping) {
-                    return $this->format($mapping, $e);
+                function ($e) use ($mapping, $entityManager) {
+                    return $this->format($mapping, $e, $entityManager);
                 },
-                    $this->formater->listToArray($value)
-                );
+                $this->formater->listToArray($value)
+            );
 
             $value = $collectionRelation ? new ArrayCollection($result) : $result;
         } else {
-            $value = $this->format($mapping, $value);
+            $value = $this->format($mapping, $value, $entityManager);
         }
     }
 }
