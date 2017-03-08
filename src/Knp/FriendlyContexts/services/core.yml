@@ -88,8 +88,8 @@ services:
             - "@friendly.definition.definition_finder"
             - "@friendly.call.call_center"
             - %friendly.smartTag%
-        tags:
-            - { name: environment.reader }
+#        tags:
+#            - { name: environment.reader }
 
     friendly.http.http_content_type_guesser:
         class: Knp\FriendlyContexts\Http\HttpContentTypeGuesser
