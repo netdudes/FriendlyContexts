@@ -32,11 +32,6 @@ class EntityResolver
             $results = $this->getClassesFromName($entityManager, $name, $namespace, $results);
         }
 
-        if (0 === count($results)) {
-
-            return;
-        }
-
         return $results;
     }
 
