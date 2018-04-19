@@ -2,6 +2,8 @@ parameters:
     friendly.parameters: []
 
 services:
+    _defaults:
+        public: true
 
     friendly.initializer:
         class: Knp\FriendlyContexts\Context\Initializer\FriendlyInitializer
@@ -22,7 +24,6 @@ services:
         arguments:
             - %friendly.alice.locale%
             - "@friendly.alice.provider_resolver"
-        scope: prototype
 
     friendly.record.bag:
         class: Knp\FriendlyContexts\Record\Collection\Bag

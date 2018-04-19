@@ -14,7 +14,9 @@ class KernelPass implements CompilerPassInterface
         $this->loadFileFromParameter($container, 'friendly.symfony_kernel.path');
 
         if ($container->has('symfony2_extension.kernel')) {
-            $container->setAlias('friendly.symfony.kernel', 'symfony2_extension.kernel');
+            $container
+                ->setAlias('friendly.symfony.kernel', 'symfony2_extension.kernel')
+                ->setPublic(true);
         } elseif (null !== $class = $this->getKernelClass($container)) {
             $definition = new Definition($class);
             $definition

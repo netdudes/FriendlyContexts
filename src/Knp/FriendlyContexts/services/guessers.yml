@@ -1,4 +1,6 @@
 services:
+    _defaults:
+        public: true
 
     friendly.guesser.boolean:
         class: Knp\FriendlyContexts\Guesser\BooleanGuesser
